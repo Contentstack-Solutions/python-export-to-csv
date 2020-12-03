@@ -5,6 +5,8 @@ Selects entries based on content type and language.
 
 Exports entries using the Content Management API from Contentstack to a CSV file.
 
+**Not officially supported by Contentstack**
+
 ## Prerequisites:
 * Contentstack Account.
 * Install Python 3 (Developed using Python 3.9.0 on Macbook).
@@ -16,5 +18,5 @@ Exports entries using the Content Management API from Contentstack to a CSV file
 
 ## How to use:
 * Run `python app.py` and answer questions that you get asked.
-* If in trouble: Contact Oskar.
+* If in trouble: Contact Oskar (oskar.eiriksson@contentstack.com)
 * Exported CSV files go to a folder called `data/` (variables in config module)
