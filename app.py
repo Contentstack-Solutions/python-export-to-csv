@@ -118,6 +118,14 @@ def findItemInArr(arr, question):
     answer = inquirer.prompt(action)['action']
     return answer
 
+def sortLanguages(langArr, masterLocale):
+    '''
+    Sorts list of languages alphabetically - except it puts the masterLocale in front
+    '''
+    langArr.remove(masterLocale)
+    langArr = sorted(langArr)
+    langArr.insert(0, masterLocale)
+    return langArr
 
 if __name__ == '__main__':
     '''
@@ -153,11 +161,13 @@ if __name__ == '__main__':
             contentTypes = cma.getAllContentTypes(apiKey, token, region)
             for contentType in contentTypes['content_types']:
                 ctArr.append(contentType['uid'])
+            ctArr = sorted(ctArr)
             contentType = findItemInArr(ctArr, 'Choose Content Type')
             languages = cma.getAllLanguages(apiKey, token, region)
             langArr = []
             for language in languages['locales']:
                 langArr.append(language['code'])
+            langArr = sortLanguages(langArr, stack['masterLocale'])
             language = findItemInArr(langArr, 'Choose Language')
             config.logging.info('Exporting entries of content type {bold}{ct}{end} and language {bold}{lang}{end}.'.format(bold=config.BOLD, ct=contentType, lang=language, end=config.END))
             stackInfo = {

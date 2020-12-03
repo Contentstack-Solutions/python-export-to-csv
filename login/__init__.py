@@ -111,7 +111,6 @@ def startup(count=1):
         config.logging.critical('Not able to login. Try again')
         exitProgram()
     liveUserInfo = cma.getUserInfo(userInfo['authtoken'], cma.regionMap[region])
-    print('here')
     if not liveUserInfo:
         userInfo = initiateLogin(region, count)
     while not liveUserInfo and count < 3:
