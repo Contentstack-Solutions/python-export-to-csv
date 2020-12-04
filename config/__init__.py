@@ -14,67 +14,10 @@ import requests
 import cma
 
 dataRootFolder = 'data/' # Relative path to the export root folder - Remember the slash at the end if you change this.
-stackRootFolder = 'stacks/' # Relative path under the dataRootFolder for stack exports
-mapperFolder = 'importJobs_UidMappers/' # The folder where mappers-jobs folders are stored - under the stackRootFolder
-# exportLoginFile = 'exportLogin.json' # Placed in the project root folder
 authTokenFile = 'authtoken.json'
-exportReportFile = 'report.json' # Placed in the stack export root folder
 logLevel = logging.INFO # Possible levels e.g.: DEBUG, ERROR, INFO
 logging.basicConfig(format='%(asctime)s:%(levelname)s:%(message)s', level=logLevel)
-
-
-'''
-Possibly replacing the regionMap variables with this one
-'''
-# regionMap = {
-#     'delivery': {
-#         'US': '',
-#         'us': '',
-#         'EU': '',
-#         'eu': ''
-#     },
-#     'management': {
-#         'US': '',
-#         'us': '',
-#         'EU': '',
-#         'eu': ''
-#     }
-# }
-
-# Folder/Directory definitions for all exports. Used to decide a folder and to validate that everything was exported correctly.
-folderNames = {
-    'contentTypes': 'contentTypes/',
-    'deliveryTokens': 'deliveryTokens/',
-    'environments': 'environments/',
-    'extensions': 'extensions/',
-    'globalFields': 'globalFields/',
-    'labels': 'labels/',
-    'languages': 'languages/',
-    'publishingRules': 'publishingRules/',
-    'roles': 'roles/',
-    'webhooks': 'webhooks/',
-    'workflows': 'workflows/',
-    'entries': 'entries/',
-    'assets': 'assets/',
-    'folders': 'assets/'
-}
-# Filename definitions for all exports. Used to decide filename and to validate that everything was exported correctly.
-fileNames = {
-    'contentTypes': 'content_types.json',
-    'deliveryTokens': 'delivery_tokens.json',
-    'environments': 'environments.json',
-    'extensions': 'extensions.json',
-    'globalFields': 'global_fields.json',
-    'labels': 'labels.json',
-    'languages': 'languages.json',
-    'publishingRules': 'publishing_rules.json',
-    'roles': 'roles.json',
-    'webhooks': 'webhooks.json',
-    'workflows': 'workflows.json',
-    'entries': 'entries.json',
-    'assets': 'assets.json',
-    'folders': 'folders.json'
-}
+cancelString = 'Cancel and Exit'
 
 # Text formatting for terminal logs.
 PURPLE = '\033[95m'

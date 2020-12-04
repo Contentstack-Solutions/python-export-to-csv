@@ -51,7 +51,7 @@ def findStack(orgs, authToken, region, action='EXPORT'):
                 name = name + ' (You are the owner)'
             orgList.append(name)
         orgList = sorted(orgList)
-        orgList.append('Cancel and Exit')
+        orgList.append(config.cancelString)
 
         chooseOrg = [
             inquirer.List('chosenOrg',
@@ -60,8 +60,8 @@ def findStack(orgs, authToken, region, action='EXPORT'):
                           ),
         ]
         orgName = inquirer.prompt(chooseOrg)['chosenOrg'].replace(' (You are the owner)', '')
-        if orgName == 'Cancel and Exit':
-            return None, None
+        if orgName == config.cancelString:
+            exitProgram()
         orgUid = orgs[orgName]['uid']
         stacks = cma.getAllStacks(cma.constructAuthTokenHeader(authToken), orgUid, region)
         stacks = restructureExportStacks(stacks)
@@ -72,7 +72,7 @@ def findStack(orgs, authToken, region, action='EXPORT'):
         unsortedList = []
         for name, _ in stacks.items():
             unsortedList.append(name)
-        stackList = stackList + sorted(unsortedList) + ['Cancel and Exit']
+        stackList = stackList + sorted(unsortedList) + [config.cancelString]
         chooseStack = [
             inquirer.List('chosenStack',
                           message="{}Choose Stack to work on ({}){}".format(config.BOLD, action, config.END),
@@ -80,8 +80,8 @@ def findStack(orgs, authToken, region, action='EXPORT'):
                           ),
         ]
         stackName = inquirer.prompt(chooseStack)['chosenStack']
-        if stackName == 'Cancel and Exit':
-            return None, None
+        if stackName == config.cancelString:
+            exitProgram()
         return stackName, stacks[stackName]
     except TypeError:
         exitProgram()
@@ -101,6 +101,8 @@ def startupQuestion():
                           ),
         ]
         answer = inquirer.prompt(action)['action']
+        if answer == 'Exit':
+            exitProgram()
         return answer
     except TypeError:
         exitProgram()
@@ -109,14 +111,17 @@ def findItemInArr(arr, question):
     '''
     Chosen content type and language
     '''
-    action = [
-        inquirer.List('action',
-                      message="{}{}{}".format(config.BOLD, question, config.END),
-                      choices=arr,
-                      ),
-    ]
-    answer = inquirer.prompt(action)['action']
-    return answer
+    try:
+        action = [
+            inquirer.List('action',
+                          message="{}{}{}".format(config.BOLD, question, config.END),
+                          choices=arr,
+                          ),
+        ]
+        answer = inquirer.prompt(action)['action']
+        return answer
+    except TypeError:
+        exitProgram()
 
 def sortLanguages(langArr, masterLocale):
     '''
@@ -142,33 +147,42 @@ if __name__ == '__main__':
         '''
         Login starts
         '''
-        region, userInfo, liveUserInfo, token = login.startup()
+        try:
+            region, userInfo, liveUserInfo, token = login.startup()
+        except (TypeError, KeyError):
+            exitProgram()
         config.logging.info('Logged in as: {}'.format(userInfo['username']))
         orgs = restructureOrgs(liveUserInfo) # Making the org output simpler
         '''
-        Login finished - Lets ask the user what he/she wants to do
+        Login finished
         '''
         config.checkDir(config.dataRootFolder)
         startupAction = ''
-        while 'Exit' not in startupAction and startupAction is not None:
+        while 'Exit' not in startupAction or startupAction is not None:
             startupAction = startupQuestion()
-            stackName, stack = findStack(orgs, token, region)
+            stackName, stack = findStack(orgs, token, region) # Choose Org and Stack
             try:
                 apiKey = stack['uid']
-            except (AttributeError, KeyError):
+            except (AttributeError, KeyError, TypeError):
                 apiKey = None
             ctArr = []
             contentTypes = cma.getAllContentTypes(apiKey, token, region)
             for contentType in contentTypes['content_types']:
                 ctArr.append(contentType['uid'])
             ctArr = sorted(ctArr)
+            ctArr.append(config.cancelString)
             contentType = findItemInArr(ctArr, 'Choose Content Type')
+            if contentType == config.cancelString:
+                exitProgram()
             languages = cma.getAllLanguages(apiKey, token, region)
             langArr = []
             for language in languages['locales']:
                 langArr.append(language['code'])
             langArr = sortLanguages(langArr, stack['masterLocale'])
+            langArr.append(config.cancelString)
             language = findItemInArr(langArr, 'Choose Language')
+            if language == config.cancelString:
+                exitProgram()
             config.logging.info('Exporting entries of content type {bold}{ct}{end} and language {bold}{lang}{end}.'.format(bold=config.BOLD, ct=contentType, lang=language, end=config.END))
             stackInfo = {
                 'apiKey': apiKey,

@@ -3,8 +3,8 @@
 '''
 import os
 import re
-import config
 import inquirer
+import config
 import cma
 from app import exitProgram
 
@@ -13,18 +13,21 @@ def chooseRegion():
     '''
     Choosing between available Contentstack regions
     '''
-    regionMap = {
-        'North America': 'US',
-        'Europe': 'EU'
-    }
-    chooseRegion = [
-        inquirer.List('chosenRegion',
-                      message="{}Choose Region:{}".format(config.BOLD, config.END),
-                      choices=['North America', 'Europe'],
-                      ),
-    ]
-    region = inquirer.prompt(chooseRegion)['chosenRegion']
-    return regionMap[region]
+    try:
+        regionMap = {
+            'North America': 'US',
+            'Europe': 'EU'
+        }
+        chooseRegion = [
+            inquirer.List('chosenRegion',
+                          message="{}Choose Region:{}".format(config.BOLD, config.END),
+                          choices=['North America', 'Europe'],
+                          ),
+        ]
+        region = inquirer.prompt(chooseRegion)['chosenRegion']
+        return regionMap[region]
+    except (TypeError, KeyError):
+        return None
 
 def executeLogin(loginInfo, maxTries, count=1):
     '''
@@ -105,7 +108,8 @@ def startup(count=1):
     Starting up the application - authenticating the user
     '''
     region = chooseRegion()
-
+    if not region:
+        return None
     userInfo = initiateLogin(region)
     if not userInfo:
         config.logging.critical('Not able to login. Try again')
