@@ -55,19 +55,93 @@ def cleanEntries(entries, language, environments):
         entriesArr.append(entry)
     return entriesArr
 
-
-def export(entries, contentType, language, apiKey, token, region):
+def cleanOrgUsers(orgUsers, userMap, roleMap):
     '''
-    Start here
+    Cleaning up User response from Contentstack
+    Making it human readable, instead of uid's for example
+    '''
+    userList = []
+    for user in orgUsers:
+        try:
+            invitedBy = userMap[user['invited_by']]
+        except KeyError:
+            invitedBy = 'System'
+        u = {}
+        u['Email'] = user['email']
+        u['User UID'] = user['user_uid']
+        u['Organization Role'] = determineUserOrgRole(user, roleMap)
+        u['Status'] = user['status']
+        u['Invited By'] = invitedBy
+        u['Created Time'] = user['created_at']
+        u['Updated Time'] = user['updated_at']
+        userList.append(u)
+    return userList
+
+def getTime():
+    now = datetime.now()
+    return now.strftime("%d-%m-%Y-%H-%M-%S")
+
+def getUserMap(users):
+    '''
+    Map Object userid:username
+    '''
+    userMap = {}
+    for user in users:
+        userMap[user['user_uid']] = user['email']
+    userMap['System'] = 'System'
+    return userMap
+
+def getRoleMap(orgRoles):
+    '''
+    Map Object roleid:rolename
+    '''
+    roleMap = {}
+    for role in orgRoles:
+        roleMap[role['uid']] = role['name']
+    return roleMap
+
+def determineUserOrgRole(user, roleMap):
+    '''
+    Just determining the actual role for the user...
+    Admin, Member or possibly the Owner
+    '''
+    roleName = 'No Role'
+    roleUid = user.get('org_roles', None)
+    if roleUid:
+        roleUid = roleUid[0]
+        roleName = roleMap[roleUid] # I don't know why this is of type list - Never has more than one item
+    if 'is_owner' in user:
+        if user['is_owner']: # == True:
+            roleName = 'Owner'
+    return roleName
+
+
+
+def exportEntries(entries, contentType, language, apiKey, token, region):
+    '''
+    Entries Export Starts Here
     '''
     entries = entries['entries']
     environments = getEnvironments(apiKey, token, region)
     entries = cleanEntries(entries, language, environments)
     df = pd.DataFrame(entries)
     # df = pd.json_normalize(entries, sep='.')
-    now = datetime.now()
-    strNow = now.strftime("%d-%m-%Y-%H-%M-%S")
-    fileName = config.dataRootFolder + contentType + '_' + language + '_export_' + strNow + '.csv'
+    fileName = config.dataRootFolder + contentType + '_' + language + '_entries_export_' + getTime() + '.csv'
     df.to_csv(fileName, index=False)
-    config.logging.info('{}Finished Export to File: {}{}'.format(config.BOLD, fileName, config.END))
+    config.logging.info('{}Finished Exporting Entries to File: {}{}'.format(config.BOLD, fileName, config.END))
+    return True
+
+def exportOrgUsers(orgName, orgUsers, orgRoles):
+    '''
+    Org Users Export Starts Here
+    '''
+    orgUsers = orgUsers['shares']
+    orgRoles = orgRoles['roles']
+    fileName = config.dataRootFolder + orgName + '_users_export_' + getTime() + '.csv'
+    userMap = getUserMap(orgUsers)
+    roleMap = getRoleMap(orgRoles)
+    userList = cleanOrgUsers(orgUsers, userMap, roleMap)
+    df = pd.DataFrame(userList)
+    df.to_csv(fileName, index=False)
+    config.logging.info('{}Finished Exporting Organization Users ({}) to File: {}{}'.format(config.BOLD, orgName, fileName, config.END))
     return True

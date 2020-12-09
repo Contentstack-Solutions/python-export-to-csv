@@ -179,6 +179,23 @@ def typicalDelete(apiKey, authToken, url, endpointName='', retry=False):
     config.logging.error('{}Failed deleting {} - {}{}'.format(config.RED, endpointName, str(res.text), config.END))
     return logError(endpointName, '', url, res) # Empty string was name variable
 
+def getAllOrgUsers(token, orgUid, region):
+    '''
+    Gets all users in an organization.
+    sample url: https://api.contentstack.io/v3/organizations/{{organization_uid}}/share?include_count=true
+    '''
+    url = '{region}v3/organizations/{org}/share?include_count=true'.format(region=region, org=orgUid)
+    return typicalGetIterate(url, None, token, 'shares')
+
+def getAllOrgRoles(token, orgUid, region):
+    '''
+    Gets all roles in an organization.
+    sample url: https://api.contentstack.io/v3/organizations/{{organization_uid}}/roles?include_count=true
+    '''
+    url = '{region}v3/organizations/{org}/roles?include_count=true'.format(region=region, org=orgUid)
+
+    return typicalGetIterate(url, None, token, 'roles')
+
 def getAllContentTypes(apiKey, token, region):
     '''
     Gets all content types, includes the count of content types and global field schema
