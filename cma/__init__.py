@@ -184,7 +184,7 @@ def getAllOrgUsers(token, orgUid, region):
     Gets all users in an organization.
     sample url: https://api.contentstack.io/v3/organizations/{{organization_uid}}/share?include_count=true
     '''
-    url = '{region}v3/organizations/{org}/share?include_count=true'.format(region=region, org=orgUid)
+    url = '{region}v3/organizations/{org}/share?include_count=true&limit=100'.format(region=region, org=orgUid)
     return typicalGetIterate(url, None, token, 'shares')
 
 def getAllOrgRoles(token, orgUid, region):
