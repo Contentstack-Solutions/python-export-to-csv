@@ -1,5 +1,5 @@
 # python-export-to-csv
-Export Entries to CSV File
+Export Entries and/or Org Users to CSV File(s)
 
 Selects entries based on content type and language.
 
