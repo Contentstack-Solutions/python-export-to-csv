@@ -55,6 +55,37 @@ def cleanEntries(entries, language, environments):
         entriesArr.append(entry)
     return entriesArr
 
+def cleanAssets(assets, apiKey, token, region):
+    '''
+    Cleaning up the Asset response from Contentstack
+    Making it human readable
+    '''
+    environments = getEnvironments(apiKey, token, region)
+    newAssets = []
+    for asset in assets['assets']:
+        del asset['ACL']
+        # assetDict = {}
+        # assetDict['uid'] = asset['uid']
+        # assetDict['filename'] = asset['filename']
+        # assetDict['title'] = asset['title']
+        # assetDict['content_type'] = asset['content_type']
+        # assetDict['url'] = asset['url']
+        # assetDict['file_size'] = asset['file_size']
+        # assetDict['tags'] = asset['tags']
+        envArr = []
+        try:
+            for environment in asset['publish_details']:
+                try:
+                    envArr.append((environments[environment['environment']], environment['locale']))
+                except KeyError:
+                    pass
+        except KeyError:
+            pass
+        asset['publish_details'] = envArr
+        newAssets.append(asset)
+    return newAssets
+
+
 def cleanOrgUsers(orgUsers, userMap, roleMap):
     '''
     Cleaning up User response from Contentstack
@@ -117,7 +148,7 @@ def determineUserOrgRole(user, roleMap):
 
 
 
-def exportEntries(entries, contentType, language, apiKey, token, region):
+def exportEntries(entries, contentType, language, apiKey, token, region, orgName, stackName):
     '''
     Entries Export Starts Here
     '''
@@ -126,7 +157,7 @@ def exportEntries(entries, contentType, language, apiKey, token, region):
     entries = cleanEntries(entries, language, environments)
     df = pd.DataFrame(entries)
     # df = pd.json_normalize(entries, sep='.')
-    fileName = config.dataRootFolder + contentType + '_' + language + '_entries_export_' + getTime() + '.csv'
+    fileName = config.dataRootFolder + orgName + '_' + stackName + '_' + contentType + '_' + language + '_entries_export_' + getTime() + '.csv'
     df.to_csv(fileName, index=False)
     config.logging.info('{}Finished Exporting Entries to File: {}{}'.format(config.BOLD, fileName, config.END))
     return True
@@ -144,4 +175,15 @@ def exportOrgUsers(orgName, orgUsers, orgRoles):
     df = pd.DataFrame(userList)
     df.to_csv(fileName, index=False)
     config.logging.info('{}Finished Exporting Organization Users ({}) to File: {}{}'.format(config.BOLD, orgName, fileName, config.END))
+    return True
+
+def exportAssets(assets, apiKey, token, region, orgName, stackName):
+    '''
+    Assets Export Starts Here
+    '''
+    fileName = config.dataRootFolder + orgName + '_' + stackName + '_assets_export_' + getTime() + '.csv'
+    assets = cleanAssets(assets, apiKey, token, region)
+    df = pd.DataFrame(assets)
+    df.to_csv(fileName, index=False)
+    config.logging.info('{}Finished Exporting Assets ({}) to File: {}{}'.format(config.BOLD, orgName, fileName, config.END))
     return True

@@ -1,9 +1,11 @@
 # python-export-to-csv
-Export Entries and/or Org Users to CSV File(s)
+Export Entries, Assets and/or Org Users to CSV File(s)
 
-Selects entries based on content type and language.
+* Selects entries based on content type and language.
+* Exports all assets from a stack.
+* Exports users on the org level. The user needs to have admin permission for the organization.
 
-Exports entries using the Content Management API from Contentstack to a CSV file.
+Exports using the Content Management API from Contentstack to a CSV file.
 
 **Not officially supported by Contentstack**
 

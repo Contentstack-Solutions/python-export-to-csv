@@ -235,7 +235,7 @@ def getAllAssets(stackInfo, token, environment):
     Get All Assets (Content Management API)
     sample url: https://api.contentstack.io/v3/assets?include_folders=true&include_publish_details=true&include_count=true&relative_urls=false&environment={environment}&query={"is_dir": False}
     '''
-    url = '{region}v3/assets?include_folders=true&include_publish_details=true&include_count=true&relative_urls=false&query={{"is_dir": false}}'.format(region=stackInfo['region'])
+    url = '{region}v3/assets?include_folders=true&include_publish_details=true&include_count=true&relative_urls=false'.format(region=stackInfo['region'])
     return typicalGetIterate(url, stackInfo['apiKey'], token, 'assets', environment)
 
 

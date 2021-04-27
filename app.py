@@ -105,7 +105,7 @@ def startupQuestion():
         action = [
             inquirer.List('action',
                           message="{}Choose Action{}".format(config.BOLD, config.END),
-                          choices=['Export Entries to CSV', 'Export Organization Users to CSV', 'Exit'],
+                          choices=['Export Entries to CSV', 'Export Assets to CSV', 'Export Organization Users to CSV', 'Exit'],
                           ),
         ]
         answer = inquirer.prompt(action)['action']
@@ -171,38 +171,42 @@ if __name__ == '__main__':
         while 'Exit' not in startupAction or startupAction is not None:
             startupAction = startupQuestion()
             orgUid, orgName = findOrg(orgs)
-            if startupAction == 'Export Entries to CSV':
+            if startupAction != 'Export Organization Users to CSV':
                 stackName, stack = findStack(orgUid, token, region) # Choose Org and Stack
                 try:
                     apiKey = stack['uid']
                 except (AttributeError, KeyError, TypeError):
                     apiKey = None
-                ctArr = []
-                contentTypes = cma.getAllContentTypes(apiKey, token, region)
-                for contentType in contentTypes['content_types']:
-                    ctArr.append(contentType['uid'])
-                ctArr = sorted(ctArr)
-                ctArr.append(config.cancelString)
-                contentType = findItemInArr(ctArr, 'Choose Content Type')
-                if contentType == config.cancelString:
-                    exitProgram()
-                languages = cma.getAllLanguages(apiKey, token, region)
-                langArr = []
-                for language in languages['locales']:
-                    langArr.append(language['code'])
-                langArr = sortLanguages(langArr, stack['masterLocale'])
-                langArr.append(config.cancelString)
-                language = findItemInArr(langArr, 'Choose Language')
-                if language == config.cancelString:
-                    exitProgram()
-                config.logging.info('Exporting entries of content type {bold}{ct}{end} and language {bold}{lang}{end}.'.format(bold=config.BOLD, ct=contentType, lang=language, end=config.END))
                 stackInfo = {
-                    'apiKey': apiKey,
-                    'region': region
-                }
-                entries = cma.getAllEntries(stackInfo, contentType, language, token)
-                csvExport.exportEntries(entries, contentType, language, apiKey, token, region)
-            elif startupAction == 'Export Organization Users to CSV':
+                        'apiKey': apiKey,
+                        'region': region
+                    }
+                if startupAction == 'Export Entries to CSV':
+                    ctArr = []
+                    contentTypes = cma.getAllContentTypes(apiKey, token, region)
+                    for contentType in contentTypes['content_types']:
+                        ctArr.append(contentType['uid'])
+                    ctArr = sorted(ctArr)
+                    ctArr.append(config.cancelString)
+                    contentType = findItemInArr(ctArr, 'Choose Content Type')
+                    if contentType == config.cancelString:
+                        exitProgram()
+                    languages = cma.getAllLanguages(apiKey, token, region)
+                    langArr = []
+                    for language in languages['locales']:
+                        langArr.append(language['code'])
+                    langArr = sortLanguages(langArr, stack['masterLocale'])
+                    langArr.append(config.cancelString)
+                    language = findItemInArr(langArr, 'Choose Language')
+                    if language == config.cancelString:
+                        exitProgram()
+                    config.logging.info('Exporting entries of content type {bold}{ct}{end} and language {bold}{lang}{end}.'.format(bold=config.BOLD, ct=contentType, lang=language, end=config.END))
+                    entries = cma.getAllEntries(stackInfo, contentType, language, token)
+                    csvExport.exportEntries(entries, contentType, language, apiKey, token, region, orgName, stackName)
+                if startupAction == 'Export Assets to CSV':
+                    assets = cma.getAllAssets(stackInfo, token, None)
+                    csvExport.exportAssets(assets, apiKey, token, region, orgName, stackName)
+            else:
                 config.logging.info('{}NOTE: You will need to have an ADMIN role within the organization to execute this export successfully.{}'.format(config.PURPLE, config.END))
                 orgUsers = cma.getAllOrgUsers(token, orgUid, region)
                 orgRoles = cma.getAllOrgRoles(token, orgUid, region)
