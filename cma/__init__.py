@@ -327,8 +327,15 @@ def getAllRoles(apiKey, token, region):
     Gets all roles
     sample url: https://api.contentstack.io/v3/roles?include_permissions={boolean_value}&include_rules={boolean_value}
     '''
-    url = '{region}v3/roles?include_permissions=true&include_rules=true&include_count=true'.format(region=region)
+    url = '{region}v3/roles?include_count=true'.format(region=region) #?include_permissions=true&include_rules=true&include_count=true
     return typicalGetIterate(url, apiKey, token, 'roles')
+
+def getAllStackUsers(apiKey, token, region):
+    '''
+    Gets all users of a stack
+    '''
+    url = '{region}v3/stacks?include_collaborators=true'.format(region=region)
+    return typicalGetSimple(url, apiKey, token)
 
 def getAllWebhooks(apiKey, token, region):
     '''

@@ -16,8 +16,9 @@ def getEnvironments(apiKey, token, region):
     '''
     envDict = {}
     environments = cma.getAllEnvironments(apiKey, token, region)
-    for environment in environments['environments']:
-        envDict[environment['uid']] = environment['name']
+    if environments:
+        for environment in environments['environments']:
+            envDict[environment['uid']] = environment['name']
     return envDict
 
 # def flatten(d, parent_key='', sep='.'):
@@ -62,27 +63,20 @@ def cleanAssets(assets, apiKey, token, region):
     '''
     environments = getEnvironments(apiKey, token, region)
     newAssets = []
-    for asset in assets['assets']:
-        del asset['ACL']
-        # assetDict = {}
-        # assetDict['uid'] = asset['uid']
-        # assetDict['filename'] = asset['filename']
-        # assetDict['title'] = asset['title']
-        # assetDict['content_type'] = asset['content_type']
-        # assetDict['url'] = asset['url']
-        # assetDict['file_size'] = asset['file_size']
-        # assetDict['tags'] = asset['tags']
-        envArr = []
-        try:
-            for environment in asset['publish_details']:
-                try:
-                    envArr.append((environments[environment['environment']], environment['locale']))
-                except KeyError:
-                    pass
-        except KeyError:
-            pass
-        asset['publish_details'] = envArr
-        newAssets.append(asset)
+    if assets:
+        for asset in assets['assets']:
+            del asset['ACL']
+            envArr = []
+            try:
+                for environment in asset['publish_details']:
+                    try:
+                        envArr.append((environments[environment['environment']], environment['locale']))
+                    except KeyError:
+                        pass
+            except KeyError:
+                pass
+            asset['publish_details'] = envArr
+            newAssets.append(asset)
     return newAssets
 
 
@@ -152,14 +146,15 @@ def exportEntries(entries, contentType, language, apiKey, token, region, orgName
     '''
     Entries Export Starts Here
     '''
-    entries = entries['entries']
-    environments = getEnvironments(apiKey, token, region)
-    entries = cleanEntries(entries, language, environments)
-    df = pd.DataFrame(entries)
-    # df = pd.json_normalize(entries, sep='.')
-    fileName = config.dataRootFolder + orgName + '_' + stackName + '_' + contentType + '_' + language + '_entries_export_' + getTime() + '.csv'
-    df.to_csv(fileName, index=False)
-    config.logging.info('{}Finished Exporting Entries to File: {}{}'.format(config.BOLD, fileName, config.END))
+    if entries:
+        entries = entries['entries']
+        environments = getEnvironments(apiKey, token, region)
+        entries = cleanEntries(entries, language, environments)
+        df = pd.DataFrame(entries)
+        # df = pd.json_normalize(entries, sep='.')
+        fileName = config.dataRootFolder + orgName + '_' + stackName + '_' + contentType + '_' + language + '_entries_export_' + getTime() + '.csv'
+        df.to_csv(fileName, index=False)
+        config.logging.info('{}Finished Exporting Entries to File: {}{}'.format(config.BOLD, fileName, config.END))
     return True
 
 def exportOrgUsers(orgName, orgUsers, orgRoles):
@@ -183,7 +178,51 @@ def exportAssets(assets, apiKey, token, region, orgName, stackName):
     '''
     fileName = config.dataRootFolder + orgName + '_' + stackName + '_assets_export_' + getTime() + '.csv'
     assets = cleanAssets(assets, apiKey, token, region)
-    df = pd.DataFrame(assets)
-    df.to_csv(fileName, index=False)
-    config.logging.info('{}Finished Exporting Assets ({}) to File: {}{}'.format(config.BOLD, orgName, fileName, config.END))
+    if assets:
+        df = pd.DataFrame(assets)
+        df.to_csv(fileName, index=False)
+        config.logging.info('{}Finished Exporting Assets ({}) to File: {}{}'.format(config.BOLD, orgName, fileName, config.END))
     return True
+
+def reStructureUsers(orgUsers):
+    '''
+    Changing the user object to a simple dict
+    '''
+    userDict = {}
+    for user in orgUsers['shares']:
+        userDict[user['uid']] = user['email']
+    return userDict
+
+def exportStacksAndRoles(orgName, stacks, token, region):
+    '''
+    Exports all Stacks and Users with Roles on those stacks
+    '''
+    stackList = []
+    stackDict = {}
+    for stack in stacks['stacks']:
+        # print(stack)
+        stackName = stack['name']
+        stackList.append(stackName)
+        apiKey = stack['api_key']
+        users = cma.getAllStackUsers(apiKey, token, region)['stack']['collaborators']
+        userDict = {}
+        for user in users:
+            userDict[user['uid']] = user['email']
+        roles = cma.getAllRoles(apiKey, token, region)['roles']
+        roleDict = {}
+        for role in roles:
+            userRoleList = []
+            if 'users' in role:
+                for userRole in role['users']:
+                    userRoleList.append(userDict[userRole])
+            if userRoleList:
+                roleDict[role['name']] = ', '.join(userRoleList)
+        roleDict['Owner'] = userDict[stack['owner_uid']]
+        stackDict[stackName] = roleDict
+    
+    fileName = config.dataRootFolder + orgName + '_usersandstackroles_export_' + getTime() + '.csv'
+    df = pd.DataFrame(stackDict)
+    df.to_csv(fileName, index=True)
+    config.logging.info('{}Finished Exporting Users and Stack Roles ({}) to File: {}{}'.format(config.BOLD, orgName, fileName, config.END))
+
+    # print(stackDict)

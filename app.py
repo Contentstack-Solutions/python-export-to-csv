@@ -105,7 +105,7 @@ def startupQuestion():
         action = [
             inquirer.List('action',
                           message="{}Choose Action{}".format(config.BOLD, config.END),
-                          choices=['Export Entries to CSV', 'Export Assets to CSV', 'Export Organization Users to CSV', 'Exit'],
+                          choices=['Export Entries to CSV', 'Export Assets to CSV', 'Export Organization Users to CSV', 'Export Organization Users with Stack Roles to CSV', 'Exit'],
                           ),
         ]
         answer = inquirer.prompt(action)['action']
@@ -171,7 +171,7 @@ if __name__ == '__main__':
         while 'Exit' not in startupAction or startupAction is not None:
             startupAction = startupQuestion()
             orgUid, orgName = findOrg(orgs)
-            if startupAction != 'Export Organization Users to CSV':
+            if any(s in startupAction for s in ('Entries', 'Assets')):
                 stackName, stack = findStack(orgUid, token, region) # Choose Org and Stack
                 try:
                     apiKey = stack['uid']
@@ -208,9 +208,17 @@ if __name__ == '__main__':
                     csvExport.exportAssets(assets, apiKey, token, region, orgName, stackName)
             else:
                 config.logging.info('{}NOTE: You will need to have an ADMIN role within the organization to execute this export successfully.{}'.format(config.PURPLE, config.END))
-                orgUsers = cma.getAllOrgUsers(token, orgUid, region)
-                orgRoles = cma.getAllOrgRoles(token, orgUid, region)
-                csvExport.exportOrgUsers(orgName, orgUsers, orgRoles)
+                if startupAction == 'Export Organization Users to CSV':
+                    config.logging.info('Exporting Org Users')
+                    orgUsers = cma.getAllOrgUsers(token, orgUid, region)
+                    orgRoles = cma.getAllOrgRoles(token, orgUid, region)
+                    csvExport.exportOrgUsers(orgName, orgUsers, orgRoles)
+                elif startupAction == 'Export Organization Users with Stack Roles to CSV':
+                    config.logging.info('Exporting Org Users and Stacks')
+                    stacks = cma.getAllStacks(cma.constructAuthTokenHeader(token), orgUid, region)
+                    csvExport.exportStacksAndRoles(orgName, stacks, token, region)
+
+
         exitProgram()
     except KeyboardInterrupt:
         exitProgram()
