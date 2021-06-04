@@ -184,45 +184,24 @@ def exportAssets(assets, apiKey, token, region, orgName, stackName):
         config.logging.info('{}Finished Exporting Assets ({}) to File: {}{}'.format(config.BOLD, orgName, fileName, config.END))
     return True
 
-def reStructureUsers(orgUsers):
-    '''
-    Changing the user object to a simple dict
-    '''
-    userDict = {}
-    for user in orgUsers['shares']:
-        userDict[user['uid']] = user['email']
-    return userDict
-
 def exportStacksAndRoles(orgName, stacks, token, region):
     '''
     Exports all Stacks and Users with Roles on those stacks
     '''
-    stackList = []
-    stackDict = {}
+    csvList = []
     for stack in stacks['stacks']:
-        # print(stack)
-        stackName = stack['name']
-        stackList.append(stackName)
-        apiKey = stack['api_key']
-        users = cma.getAllStackUsers(apiKey, token, region)['stack']['collaborators']
+        users = cma.getAllStackUsers(stack['api_key'], token, region)['stack']['collaborators']
         userDict = {}
         for user in users:
             userDict[user['uid']] = user['email']
-        roles = cma.getAllRoles(apiKey, token, region)['roles']
-        roleDict = {}
+        csvList.append({'Stack Name': stack['name'], 'Stack API Key': stack['api_key'], 'User': userDict[stack['owner_uid']], 'Role': 'Owner'})
+        roles = cma.getAllRoles(stack['api_key'], token, region)['roles']
         for role in roles:
-            userRoleList = []
             if 'users' in role:
                 for userRole in role['users']:
-                    userRoleList.append(userDict[userRole])
-            if userRoleList:
-                roleDict[role['name']] = ', '.join(userRoleList)
-        roleDict['Owner'] = userDict[stack['owner_uid']]
-        stackDict[stackName] = roleDict
+                    csvList.append({'Stack Name': stack['name'], 'Stack API Key': stack['api_key'], 'User': userDict[userRole], 'Role': role['name']})
     
     fileName = config.dataRootFolder + orgName + '_usersandstackroles_export_' + getTime() + '.csv'
-    df = pd.DataFrame(stackDict)
-    df.to_csv(fileName, index=True)
+    df = pd.DataFrame(csvList)
+    df.to_csv(fileName, index=False)
     config.logging.info('{}Finished Exporting Users and Stack Roles ({}) to File: {}{}'.format(config.BOLD, orgName, fileName, config.END))
-
-    # print(stackDict)
