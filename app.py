@@ -207,16 +207,18 @@ if __name__ == '__main__':
                     assets = cma.getAllAssets(stackInfo, token, None)
                     csvExport.exportAssets(assets, apiKey, token, region, orgName, stackName)
             else:
-                config.logging.info('{}NOTE: You will need to have an ADMIN role within the organization to execute this export successfully.{}'.format(config.PURPLE, config.END))
                 if startupAction == 'Export Organization Users to CSV':
+                    config.logging.info('{}NOTE: You will need to have an ADMIN role within the organization to execute this export successfully.{}'.format(config.PURPLE, config.END))
                     config.logging.info('Exporting Org Users')
                     orgUsers = cma.getAllOrgUsers(token, orgUid, region)
                     orgRoles = cma.getAllOrgRoles(token, orgUid, region)
                     csvExport.exportOrgUsers(orgName, orgUsers, orgRoles)
                 elif startupAction == 'Export Organization Users with Stack Roles to CSV':
+                    config.logging.info('{}NOTE: You will need to have an ADMIN role within the organization and access to all the stacks (With Admin or Developer Role) to execute this export successfully.{}'.format(config.PURPLE, config.END))
                     config.logging.info('Exporting Org Users and Stacks')
-                    stacks = cma.getAllStacks(cma.constructAuthTokenHeader(token), orgUid, region)
-                    csvExport.exportStacksAndRoles(orgName, stacks, token, region)
+                    stacks = cma.getAllStacks(cma.constructAuthTokenHeader(token), orgUid, region) # All stacks that the user has access
+                    allStacks = cma.getAllStacksFromOrg(cma.constructAuthTokenHeader(token), orgUid, region) # Fetching all stacks, to log out if the user does not have access to them all
+                    csvExport.exportStacksAndRoles(orgName, stacks, allStacks, token, region)
 
 
         exitProgram()

@@ -347,14 +347,25 @@ def getAllWebhooks(apiKey, token, region):
 
 def getAllStacks(header, orgUid, region):
     '''
-    Gets all stacks from an organization
+    Gets all stacks from an organization (Only fetches the stacks the user has access to - and lists out more information about the stack)
     sample url: https://api.contentstack.io/v3/stacks
     '''
     header['organization_uid'] = orgUid
     url = '{}v3/stacks'.format(region)
     res = requests.get(url, headers=header)
-    config.logging.debug(res.json())
     return res.json()
+
+def getAllStacksFromOrg(header, orgUid, region):
+    '''
+    Gets all stacks from an organization (Also fetches the stacks the users does not have access to)
+    sample url: https://api.contentstack.io/v3/organizations/{organization_uid}/stacks?include_count=true
+    Limitation: Not tested on org with more than 100 stacks
+    '''
+    header['organization_uid'] = orgUid
+    url = '{region}v3/organizations/{orgUid}/stacks'.format(region=region, orgUid=orgUid)
+    res = requests.get(url, headers=header)
+    return res.json()
+
 
 def createStack(token, orgUid, region, body):
     '''

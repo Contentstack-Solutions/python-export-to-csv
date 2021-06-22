@@ -184,10 +184,27 @@ def exportAssets(assets, apiKey, token, region, orgName, stackName):
         config.logging.info('{}Finished Exporting Assets ({}) to File: {}{}'.format(config.BOLD, orgName, fileName, config.END))
     return True
 
-def exportStacksAndRoles(orgName, stacks, token, region):
+def compareStacks(stacks, allStacks):
+    '''
+    Comparing all stacks in the org to the stacks the user has access too
+    '''
+    allStacksDict = {}
+    for stack in allStacks['stacks']:
+        allStacksDict[stack['api_key']] = stack['name']
+    for stack in stacks['stacks']:
+        if stack['api_key'] in allStacksDict:
+            del allStacksDict[stack['api_key']]
+    if allStacksDict:
+        config.logging.error('{}Access missing on following stacks - Not able to export users!{}'.format(config.RED, config.END))
+        for apiKey, name in allStacksDict.items():
+            config.logging.error('{}{} ({}){}'.format(config.RED, name, apiKey, config.END))
+
+
+def exportStacksAndRoles(orgName, stacks, allStacks, token, region):
     '''
     Exports all Stacks and Users with Roles on those stacks
     '''
+    compareStacks(stacks, allStacks) # Logging out to confirm the user has access to all the stacks
     csvList = []
     for stack in stacks['stacks']:
         users = cma.getAllStackUsers(stack['api_key'], token, region)['stack']['collaborators']
