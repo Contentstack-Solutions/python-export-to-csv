@@ -366,7 +366,7 @@ def getAllStacksFromOrg(header, orgUid, region):
     res = requests.get(url, headers=header)
     if res.status_code not in (200, 201):
         config.logging.error('{}Error getting all stacks from ORG. HTTP STATUS CODE: {}, ERROR MESSAGE: {}{}'.format(config.RED, res.status_code, res.text, config.END))
-        config.logging.error('{}Report will not return correct results{}'.format(config.RED, config.END))
+        config.logging.error('{}It is unlikely the report will be listing all the available stacks. Not possible to confirm the list of stacks since the user does not have admin permissions on the organisation level.{}'.format(config.RED, config.END))
         return None
     return res.json()
 
