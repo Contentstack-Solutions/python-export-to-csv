@@ -189,11 +189,12 @@ def compareStacks(stacks, allStacks):
     Comparing all stacks in the org to the stacks the user has access too
     '''
     allStacksDict = {}
-    for stack in allStacks['stacks']:
-        allStacksDict[stack['api_key']] = stack['name']
-    for stack in stacks['stacks']:
-        if stack['api_key'] in allStacksDict:
-            del allStacksDict[stack['api_key']]
+    if allStacks:
+        for stack in allStacks['stacks']:
+            allStacksDict[stack['api_key']] = stack['name']
+        for stack in stacks['stacks']:
+            if stack['api_key'] in allStacksDict:
+                del allStacksDict[stack['api_key']]
     if allStacksDict:
         config.logging.error('{}Access missing on following stacks - Not able to export users!{}'.format(config.RED, config.END))
         for apiKey, name in allStacksDict.items():

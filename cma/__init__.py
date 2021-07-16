@@ -364,6 +364,10 @@ def getAllStacksFromOrg(header, orgUid, region):
     header['organization_uid'] = orgUid
     url = '{region}v3/organizations/{orgUid}/stacks'.format(region=region, orgUid=orgUid)
     res = requests.get(url, headers=header)
+    if res.status_code not in (200, 201):
+        config.logging.error('{}Error getting all stacks from ORG. HTTP STATUS CODE: {}, ERROR MESSAGE: {}{}'.format(config.RED, res.status_code, res.text, config.END))
+        config.logging.error('{}Report will not return correct results{}'.format(config.RED, config.END))
+        return None
     return res.json()
 
 
