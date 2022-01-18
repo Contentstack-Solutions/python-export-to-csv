@@ -99,6 +99,10 @@ def cleanOrgUsers(orgUsers, userMap, roleMap):
         u['Invited By'] = invitedBy
         u['Created Time'] = user['created_at']
         u['Updated Time'] = user['updated_at']
+        if 'access_without_sso' in user:
+            u['Access Without SSO'] = 'true'
+        else:
+            u['Access Without SSO'] = 'false'
         userList.append(u)
     return userList
 
