@@ -4,6 +4,7 @@ oskar.eiriksson@contentstack.com
 2020-12-02
 '''
 from datetime import datetime
+from fileinput import filename
 # import collections
 import pandas as pd
 import flatdict
@@ -146,7 +147,7 @@ def determineUserOrgRole(user, roleMap):
 
 
 
-def exportEntries(entries, contentType, language, apiKey, token, region, orgName, stackName):
+def exportEntries(entries, contentType, language, apiKey, token, region, orgName, stackName, format='csv'):
     '''
     Entries Export Starts Here
     '''
@@ -156,8 +157,15 @@ def exportEntries(entries, contentType, language, apiKey, token, region, orgName
         entries = cleanEntries(entries, language, environments)
         df = pd.DataFrame(entries)
         # df = pd.json_normalize(entries, sep='.')
-        fileName = config.dataRootFolder + orgName + '_' + stackName + '_' + contentType + '_' + language + '_entries_export_' + getTime() + '.csv'
-        df.to_csv(fileName, index=False)
+        fileName = config.dataRootFolder + orgName + '_' + stackName + '_' + contentType + '_' + language + '_entries_export_' + getTime()
+        if format == 'csv':
+            fileName = fileName + '.csv'
+            df.to_csv(fileName, index=False)
+        else:
+            fileName = fileName + '.txt'
+            f = open(fileName, 'w')
+            f.writelines(df.to_string())
+            f.close()
         config.logging.info('{}Finished Exporting Entries to File: {}{}'.format(config.BOLD, fileName, config.END))
     return True
 

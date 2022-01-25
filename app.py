@@ -105,7 +105,7 @@ def startupQuestion():
         action = [
             inquirer.List('action',
                           message="{}Choose Action{}".format(config.BOLD, config.END),
-                          choices=['Export Entries to CSV', 'Export Assets to CSV', 'Export Organization Users to CSV', 'Export Organization Users with Stack Roles to CSV', 'Exit'],
+                          choices=['Export Entries to CSV', 'Export Entries to TXT', 'Export Assets to CSV', 'Export Organization Users to CSV', 'Export Organization Users with Stack Roles to CSV', 'Exit'],
                           ),
         ]
         answer = inquirer.prompt(action)['action']
@@ -147,6 +147,7 @@ if __name__ == '__main__':
     try:
         print('''
         {yellow}Export Entries to CSV{end}
+        {yellow}Export Entries to TXT File{end}
         {cyan}- Single content type and language{end}
         {yellow}Export Organization Users to CSV{end}
         {cyan}- Email addresses, UIDs, User Roles, etc{end}
@@ -181,7 +182,7 @@ if __name__ == '__main__':
                         'apiKey': apiKey,
                         'region': region
                     }
-                if startupAction == 'Export Entries to CSV':
+                if 'Export Entries to' in startupAction:
                     ctArr = []
                     contentTypes = cma.getAllContentTypes(apiKey, token, region)
                     for contentType in contentTypes['content_types']:
@@ -202,7 +203,10 @@ if __name__ == '__main__':
                         exitProgram()
                     config.logging.info('Exporting entries of content type {bold}{ct}{end} and language {bold}{lang}{end}.'.format(bold=config.BOLD, ct=contentType, lang=language, end=config.END))
                     entries = cma.getAllEntries(stackInfo, contentType, language, token)
-                    csvExport.exportEntries(entries, contentType, language, apiKey, token, region, orgName, stackName)
+                    if 'CSV' in startupAction:
+                        csvExport.exportEntries(entries, contentType, language, apiKey, token, region, orgName, stackName)
+                    elif 'TXT' in startupAction:
+                        csvExport.exportEntries(entries, contentType, language, apiKey, token, region, orgName, stackName, 'TXT')
                 if startupAction == 'Export Assets to CSV':
                     assets = cma.getAllAssets(stackInfo, token, None)
                     csvExport.exportAssets(assets, apiKey, token, region, orgName, stackName)
