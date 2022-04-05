@@ -42,8 +42,11 @@ def cleanEntries(entries, language, environments):
         if (language != entry['locale']) and not entry['publish_details']:
             continue # We don't need unpublished and unlocalized items
         envArr = []
-        for environment in entry['publish_details']:
-            envArr.append((environments[environment['environment']], environment['locale']))
+        try:
+            for environment in entry['publish_details']:
+                envArr.append((environments[environment['environment']], environment['locale']))
+        except KeyError:
+            config.logging.warning('Information about environment missing. Might be missing user permissions.')
         del entry['publish_details']
         workflow = ''
         if '_workflow' in entry:
