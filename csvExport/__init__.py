@@ -46,7 +46,7 @@ def cleanEntries(entries, language, environments):
             for environment in entry['publish_details']:
                 envArr.append((environments[environment['environment']], environment['locale']))
         except KeyError:
-            config.logging.warning('Information about environment missing. Might be missing user permissions.')
+            config.logging.warning('Information about environment(s) missing. Might be missing user permissions.')
         del entry['publish_details']
         workflow = ''
         if '_workflow' in entry:
