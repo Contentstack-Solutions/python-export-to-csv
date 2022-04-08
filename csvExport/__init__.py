@@ -50,8 +50,12 @@ def cleanEntries(entries, language, environments):
         del entry['publish_details']
         workflow = ''
         if '_workflow' in entry:
-            workflow = entry['_workflow']['name']
-            del entry['_workflow']
+            try:
+                workflow = entry['_workflow']['name']
+                del entry['_workflow']
+            except KeyError:
+                workflow = 'Not available'
+                config.logging.warning('Information about workflow stage missing. Might be missing user permissions.')
         entry = flatdict.FlatterDict(entry)
         entry.set_delimiter('.')
         entry = dict(entry)
@@ -103,6 +107,7 @@ def cleanOrgUsers(orgUsers, userMap, roleMap):
         u['Invited By'] = invitedBy
         u['Created Time'] = user['created_at']
         u['Updated Time'] = user['updated_at']
+        u['Last Login'] = user['last_login_at']
         if 'access_without_sso' in user:
             u['Access Without SSO'] = 'true'
         else:
@@ -182,6 +187,7 @@ def exportOrgUsers(orgName, orgUsers, orgRoles):
     userMap = getUserMap(orgUsers)
     roleMap = getRoleMap(orgRoles)
     userList = cleanOrgUsers(orgUsers, userMap, roleMap)
+    print(orgUsers)
     df = pd.DataFrame(userList)
     df.to_csv(fileName, index=False)
     config.logging.info('{}Finished Exporting Organization Users ({}) to File: {}{}'.format(config.BOLD, orgName, fileName, config.END))

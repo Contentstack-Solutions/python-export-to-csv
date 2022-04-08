@@ -185,8 +185,11 @@ if __name__ == '__main__':
                 if 'Export Entries to' in startupAction:
                     ctArr = []
                     contentTypes = cma.getAllContentTypes(apiKey, token, region)
-                    for contentType in contentTypes['content_types']:
-                        ctArr.append(contentType['uid'])
+                    if contentTypes:
+                        for contentType in contentTypes['content_types']:
+                            ctArr.append(contentType['uid'])
+                    else:
+                        config.logging.warning('No Content Types found.') 
                     ctArr = sorted(ctArr)
                     ctArr.append(config.cancelString)
                     contentType = findItemInArr(ctArr, 'Choose Content Type')
