@@ -53,7 +53,7 @@ def cleanEntries(entries, language, environments):
             try:
                 workflow = entry['_workflow']['name']
                 del entry['_workflow']
-            except KeyError:
+            except:
                 workflow = 'Not available'
                 config.logging.warning('Information about workflow stage missing. Might be missing user permissions.')
         entry = flatdict.FlatterDict(entry)
