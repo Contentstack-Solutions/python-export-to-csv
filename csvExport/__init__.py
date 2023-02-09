@@ -187,7 +187,6 @@ def exportOrgUsers(orgName, orgUsers, orgRoles):
     userMap = getUserMap(orgUsers)
     roleMap = getRoleMap(orgRoles)
     userList = cleanOrgUsers(orgUsers, userMap, roleMap)
-    print(orgUsers)
     df = pd.DataFrame(userList)
     df.to_csv(fileName, index=False)
     config.logging.info('{}Finished Exporting Organization Users ({}) to File: {}{}'.format(config.BOLD, orgName, fileName, config.END))
@@ -238,7 +237,11 @@ def exportStacksAndRoles(orgName, stacks, allStacks, token, region):
         for role in roles:
             if 'users' in role:
                 for userRole in role['users']:
-                    csvList.append({'Stack Name': stack['name'], 'Stack API Key': stack['api_key'], 'User': userDict[userRole], 'Role': role['name']})
+                    try: 
+                        usernameInRole = userDict[userRole]
+                    except KeyError:
+                        usernameInRole = 'UID: ' + userRole + ' (User not found)'
+                    csvList.append({'Stack Name': stack['name'], 'Stack API Key': stack['api_key'], 'User': usernameInRole, 'Role': role['name']})
     
     fileName = config.dataRootFolder + orgName + '_usersandstackroles_export_' + getTime() + '.csv'
     df = pd.DataFrame(csvList)
